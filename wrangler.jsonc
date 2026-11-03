@@ -1,8 +1,1 @@
-{
-  "name": "przedszkolny-organizer",
-  "compatibility_date": "2026-11-03",
-  "assets": {
-    "directory": "./dist",
-    "not_found_handling": "single-page-application"
-  }
-}
+{"name":"przedszkolny-organizer","main":"worker.js","compatibility_date":"2026-09-01","assets":{"directory":"./dist","binding":"ASSETS"},"d1_databases":[{"binding":"DB","database_name":"przedszkolny-organizer","database_id":"2c980da1-3264-48c9-88d7-80ef6adff0c3"}]}
