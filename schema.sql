@@ -1,0 +1,16 @@
+PRAGMA foreign_keys=ON;
+CREATE TABLE IF NOT EXISTS schools(id TEXT PRIMARY KEY,name TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,email TEXT NOT NULL UNIQUE,name TEXT NOT NULL,password_hash TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS memberships(id TEXT PRIMARY KEY,school_id TEXT NOT NULL REFERENCES schools(id),user_id TEXT NOT NULL REFERENCES users(id),role TEXT NOT NULL CHECK(role IN ('admin','treasurer','organizer','parent')),UNIQUE(school_id,user_id,role));
+CREATE TABLE IF NOT EXISTS groups(id TEXT PRIMARY KEY,school_id TEXT NOT NULL REFERENCES schools(id),name TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS children(id TEXT PRIMARY KEY,school_id TEXT NOT NULL REFERENCES schools(id),group_id TEXT NOT NULL REFERENCES groups(id),name TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS guardians(id TEXT PRIMARY KEY,school_id TEXT NOT NULL REFERENCES schools(id),child_id TEXT NOT NULL REFERENCES children(id),user_id TEXT NOT NULL REFERENCES users(id),UNIQUE(child_id,user_id));
+CREATE TABLE IF NOT EXISTS collections(id TEXT PRIMARY KEY,school_id TEXT NOT NULL REFERENCES schools(id),group_id TEXT NOT NULL REFERENCES groups(id),title TEXT NOT NULL,amount_cents INTEGER NOT NULL CHECK(amount_cents>=0),due_date TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS payments(id TEXT PRIMARY KEY,school_id TEXT NOT NULL REFERENCES schools(id),collection_id TEXT NOT NULL REFERENCES collections(id),child_id TEXT NOT NULL REFERENCES children(id),amount_cents INTEGER NOT NULL CHECK(amount_cents>0),paid_at TEXT NOT NULL,created_by TEXT NOT NULL REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS polls(id TEXT PRIMARY KEY,school_id TEXT NOT NULL REFERENCES schools(id),group_id TEXT NOT NULL REFERENCES groups(id),question TEXT NOT NULL,options_json TEXT NOT NULL,closes_at TEXT NOT NULL,anonymous INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS votes(id TEXT PRIMARY KEY,school_id TEXT NOT NULL REFERENCES schools(id),poll_id TEXT NOT NULL REFERENCES polls(id),user_id TEXT NOT NULL REFERENCES users(id),option_index INTEGER NOT NULL,UNIQUE(poll_id,user_id));
+CREATE TABLE IF NOT EXISTS notices(id TEXT PRIMARY KEY,school_id TEXT NOT NULL REFERENCES schools(id),group_id TEXT NOT NULL REFERENCES groups(id),title TEXT NOT NULL,body TEXT NOT NULL,event_date TEXT,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS audit_log(id TEXT PRIMARY KEY,school_id TEXT NOT NULL,actor_id TEXT NOT NULL,action TEXT NOT NULL,entity_id TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE INDEX IF NOT EXISTS idx_collections_group ON collections(school_id,group_id);
+CREATE INDEX IF NOT EXISTS idx_payments_collection ON payments(school_id,collection_id,child_id);
+CREATE INDEX IF NOT EXISTS idx_memberships_user ON memberships(user_id,school_id);
